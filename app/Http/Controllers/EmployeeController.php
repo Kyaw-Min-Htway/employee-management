@@ -12,7 +12,7 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        //
+        return Employee::all();
     }
 
     /**
@@ -28,15 +28,23 @@ class EmployeeController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:employees',
+            'position' => 'required|string|max:255',
+        ])
+
+        $employee = Employee::create($validatedData);
+
+        return response()->json($employee, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Employee $employee)
+    public function show($uuid)
     {
-        //
+        return $employee::where('uuid', $uuid)->firstOrFail();
     }
 
     /**
@@ -50,16 +58,29 @@ class EmployeeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Employee $employee)
+    public function update(Request $request, $uuid)
     {
-        //
+        $employee = Employee::where('uuid', $uuid)->firstOrFail();
+
+        $validatedData = $request->validate([
+            'name' => 'string|max:255',
+            'email' => 'string|email|max:255|unique:employees,email,' . $employee->id,
+            'position' => 'string|max:255',
+        ]);
+
+        $employee->update($validatedData);
+
+        return response()->json($employee, 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Employee $employee)
+    public function destroy($uuid)
     {
-        //
+        $employee = Employee::where('uuid', $uuid)->firstOrFail();
+        $employee->delete();
+
+        return response()->json(null, 204);
     }
 }
